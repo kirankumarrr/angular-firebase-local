@@ -59,11 +59,10 @@ export class LoginComponent implements OnInit {
 
   ggllogin(){
     var provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).then(function(result) {
+    firebase.auth().signInWithPopup(provider).then(result =>{
       debugger;
       if(result.user.emailVerified){
-        console.log("nextr");
-        // this.SetUID(result.user.uid)
+        console.log("next");
         localStorage.setItem("userUID",result.user.uid);;
         this._router.navigate(["/success",result.user.uid]);
       }else{
@@ -71,7 +70,8 @@ export class LoginComponent implements OnInit {
         this.msg ="Email Verification Pending";
       }
     })
-    .catch(userData =>{
+    .catch(error =>{
+      console.log(error);
       localStorage.removeItem("userUID");
       this.type ="error";
       this.msg ="Wrong User Credentials";

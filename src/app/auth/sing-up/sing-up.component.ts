@@ -14,6 +14,7 @@ export class SingUpComponent implements OnInit {
     email: null,
     password: null
   }
+  username : string;
   type: string = null;
   msg: string = null;
   constructor(
@@ -21,7 +22,32 @@ export class SingUpComponent implements OnInit {
     private _router: Router) { }
 
   ngOnInit() {
+      firebase.auth().onAuthStateChanged(function(result) {
+        console.log(result);
+        if (result) {
+            var name = result.displayName;
+            var email =result.email;
+            var uid = result.uid;
+            firebase.database().ref('users/' + uid).set({
+              email: email,
+              uid: uid,
+              registrationDate: new Date().toString(),
+              name: name
+          });
+            console.log("name: "+name);
+            console.log("email: "+email);
+            console.log("uid: "+uid);
+        }
+    });
   }
+  // createNewPost(email, uid, fullname) {
+  //     firebase.database().ref('users/' + uid).set({
+  //         email: email,
+  //         uid: uid,
+  //         registrationDate: new Date().toString(),
+  //         name: fullname
+  //     });
+  // }
   saveUser(userform: NgForm) {
     // console.log(userform);
     // console.log(this.user);
@@ -52,40 +78,19 @@ export class SingUpComponent implements OnInit {
     firebase.auth().signInWithPopup(provider).then(function (result) {
       console.log(result);
       result.user.sendEmailVerification();
-      var userInfo = result.additionalUserInfo;
-      return firebase.database().ref('users/' + result.user.uid).set({
-        email: userInfo.email,
-        uid: result.user.uid,
-        registrationDate: new Date().toString(),
-        name: userInfo.name,
-      })
-      .then(()=>{
-        firebase.auth().signOut();
-      })
-      
-      // ...
-    }).catch(function (error) {
-      //remove this later.
       firebase.auth().signOut();
       // ...
+    }).catch(function (error) {
+        console.log(error);
     });
   }
 //  https://firebase.google.com/docs/auth/web/facebook-login#before_you_begin
     ggllogin(){
       var provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider).then(function(result) {
+        firebase.auth().signInWithPopup(provider).then(function(result) {
         console.log(result);
-        const Uid = result.user.uid;
-        const obj = {
-          email: result.user.email,
-          uid: result.user.uid,
-          registrationDate: new Date().toString(),
-          name: result.user.name,
-        }
-        return firebase.database().ref('users/' +Uid ).set(obj)
-
-
-         
+        result.user.sendEmailVerification();
+        firebase.auth().signOut();
       })
       .catch(userData =>{
         localStorage.removeItem("userUID");
@@ -93,6 +98,4 @@ export class SingUpComponent implements OnInit {
         this.msg ="Wrong User Credentials";
       })
     }
-
-    
 }
